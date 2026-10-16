@@ -7,13 +7,34 @@
 #
 #   docker run -i --rm -v /abs/lake:/abs/lake -v /abs/cnequity.toml:/config.toml \
 #     cnequity mcp --config /config.toml
+## FROM python:3.12-slim
+## 
+## ENV PYTHONDONTWRITEBYTECODE=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+## 
+## RUN pip install cnequity \
+##    && cne init --profile sample --data-root /opt/cnequity/sample \
+##         --config-out /opt/cnequity/sample.toml
+
+## ENTRYPOINT ["cne"]
+## CMD ["mcp", "--config", "/opt/cnequity/sample.toml"]
+
+
+### AI
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    TZ=Asia/Shanghai
 
-RUN pip install cnequity \
-    && cne init --profile sample --data-root /opt/cnequity/sample \
-        --config-out /opt/cnequity/sample.toml
+WORKDIR /app
+
+# 复制仓库源码并直接安装当前最新代码（而非从 PyPI 下载旧版）
+COPY . /app
+RUN pip install . && rm -rf /app/*
+
+# 预创建标准的数据湖与配置挂载目录
+RUN mkdir -p /data /configs
 
 ENTRYPOINT ["cne"]
-CMD ["mcp", "--config", "/opt/cnequity/sample.toml"]
+CMD ["--help"]
