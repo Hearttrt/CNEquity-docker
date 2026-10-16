@@ -27,14 +27,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     TZ=Asia/Shanghai
 
-WORKDIR /app
-
-# 复制仓库源码并直接安装当前最新代码（而非从 PyPI 下载旧版）
-COPY . /app
-RUN pip install . && rm -rf /app/*
-
-# 预创建标准的数据湖与配置挂载目录
-RUN mkdir -p /data /configs
+# 1. 如果你保持官方原版写法（从 PyPI 安装），只需在后面加上 polars[rtcompat]：
+RUN pip install cnequity "polars[rtcompat]" \
+    && cne init --profile sample --data-root /opt/cnequity/sample \
+        --config-out /opt/cnequity/sample.toml
 
 ENTRYPOINT ["cne"]
-CMD ["--help"]
+CMD ["mcp", "--config", "/opt/cnequity/sample.toml"]
+
